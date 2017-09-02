@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script src="http://d3js.org/d3.v3.min.js"></script>
+			<style = type= "text/css">
+				h2 {
+					text-align: center;
+					color: black;
+					font-size: 2.0em;
+				}
+
+				text {
+					font-size: 1.0em;
+				}
+
+			</style>
+
+			<script type="text/javascript">
+				function draw(data){
+					"use strict";
+					var margin = 30,
+						w = 900,
+						h = 800;
+
+				/* Add Header and Construct svg */
+
+					d3.select("body")
+					  .append("h2")
+					  .text('Titanic Survivorship');
+
+
+					var svg = d3.select('body')
+							.append('svg')
+							.attr('width', w + margin)
+							.attr('height', h + margin)
+
+					/* group data by Pclass and flatten the dataset */
+
+					var female_live = 0
+					var female_decease = 0
+					var male_live = 0
+					var male_decease = 0
+
+
+					function counts(leaves){
+						leaves.forEach(function(d){
+							if (d['Survived']== "0"  && d['Sex']=="female"){
+								female_decease++;
+							}else if(d['Survived']== "0"  && d['Sex']=="male"){
+								male_decease++;
+							}else if(d['Survived']=="1" && d['Sex']=="female"){
+								female_live++;
+							}else if(d['Survived']=="1" && d['Sex']=="male"){
+								male_live++;
+							};
+						});
+						return {
+							"live": female_live+male_live,
+							"decease": female_decease+male_decease,
+							"male_live": male_live,
+							"male_decease": male_decease,
+							"female_live": female_live,
+							"female_decease": female_decease
+						};
+					}
+
+					var nested_data = d3.nest()
+										.key(function(d){
+											return d['Pclass'];
+										})
+										.rollup(counts)
+										.entries(data)
+
+
+					/* set scales and add axis */
+
+					var y_scale = d3.scale.linear()
+						.range([margin, h])
+						.domain([0, 600])
+
+
+					d3.select("svg")
+						.selectAll("text")
+						.data(["PClass1", "PClass2", "PClass3"])
+						.enter()
+						.append("text")
+						.attr("x", function(d, i){
+							return (3*i+2)*80 + margin;
+						})
+						.attr("y", margin + h)
+						.style("text-anchor", "end")
+						.text(function(d){return d;})
+
+
+					/* create bars, append rectangles and texts */
+
+					var bar = svg.selectAll("g")
+						.data(nested_data)
+						.enter()
+
+
+					 bar.append("g")
+						.each(function(d){
+							d3.select(this).append("rect")
+								.attr("x", function(d){
+									return (3* d.key - 2) * 80;})
+								.attr("width", 80)
+								.attr("y", function(d){
+									return h - y_scale(d.values['live']);
+								})
+								.attr("height", function(d){
+									return y_scale(d.values['live']);
+								})
+								.attr("fill", "#84b66f")
+								
+							d3.select(this).append("rect")
+								.attr("x", function(d){
+									return (3* d.key - 1) * 80;
+								})
+								.attr("width", 80)
+								.attr("y", function(d){
+									return h - y_scale(d.values['decease']);
+								})
+								.attr("height", function(d){
+									return y_scale(d.values['decease']);
+								})
+								.attr("fill", "#678ca5")
+							})
+
+
+					bar.append("g")
+					   .each(function(d){
+					   		d3.select(this).append("text")
+					   			.attr("x", function(d){
+									return 3 * d.key * 80 - 120;})
+					   			.attr("y", function(d){
+									return (h - 5 - y_scale(d.values['live']));})
+								.text(function(d){
+									return d.values['live'];})
+								.style("text-anchor", "middle")
+								.attr("font-size", "11px")
+								.attr("fill", "black")
+							d3.select(this).append("text")
+								.attr("x", function(d){
+									return 3* d.key * 80 - 40;
+								})
+								.attr("y", function(d){
+									return (h - 5 - y_scale(d.values['decease']));
+								})
+								.text(function(d){return d.values['decease'];})
+								.style("text-anchor", "middle")
+								.attr("font-size", "11px")
+								.attr("fill", "black")
+					   	});
+
+	
+
+					   /* add legend */
+
+						var legend = svg.append("g")
+							.attr("class", "legend")
+							.selectAll("g")
+							.data(["Survived", "Deceased"])
+							.enter().append("g")
+
+						legend.append("rect")
+							.attr("x", margin)
+							.attr("y", function(d, i){
+								return (i+1)*20;
+							})
+							.attr("width", 12)
+							.attr("height", 12)
+							.style("fill", function(d){
+								if (d == "Survived"){
+									return "#84b66f";
+								}else{
+									return "#678ca5";
+								}
+							})
+
+						legend.append("text")
+							.attr("x", margin + 15)
+							.attr("y", function(d, i){
+								return (i+1)*27;
+							})
+							.text(function(d){
+								return d;
+							})
+
+						svg.append("circle")
+							.attr("cx", margin+5)
+							.attr("cy", 80)
+							.attr("r", 7)
+							.attr("fill", "#876a90")
+							.attr("id", "gender")
+							.on("click", display_gender)
+
+
+						svg.append("text")
+							.text("Display_Gender_Percentage")
+							.attr("x", margin + 16)
+							.attr("y", 85)
+							.attr("color", "black")
+
+
+
+					/* define events where female and male composition is displayed */
+
+					/*var fo = svg.append("foreignObject")
+						.attr("x", margin)
+						.attr("y", 80)
+						.attr("width", 100)
+						.attr("class", "svg-tooltip")
+
+					var div = fo.append('xhtml:div')
+   						.append('div')
+  					    .attr('class', 'tooltip');
+ 					
+ 					div.append('div')
+    				   .attr('class', 'lead')
+   					   .html('<button onclick="display_gender()">Display Gender Percentage</button>' );*/
+
+
+				    function display_gender(){
+						
+						var format = d3.format(".0%")
+
+						bar.append("g")
+						.each(function(d){
+							
+							var subelement = d3.select(this)
+
+							subelement.append("line")
+							  .attr("x1", function(d){
+								return (3* d.key - 2) * 80;})
+							  .attr("x2", function(d){
+								return (3* d.key - 1) * 80;})
+							  .attr("y1", function(d){
+						  		return h - y_scale(d.values["female_live"]);
+							  })
+							  .attr("y2", function(d){
+						  		return h - y_scale(d.values["female_live"]);
+							  })
+						  	  .attr("stroke", "black")
+						 	  .attr("stroke-width", 1)
+						 	  .style("stroke-dasharray","5,5")
+
+						 	subelement.append("text")
+						 		.attr("x", function(d){
+									return (3* d.key - 1.5) * 80;})
+								.attr("y", function(d){
+						  			return h + 15 - y_scale(d.values["female_live"]);
+							  		})
+								.attr("text-anchor", "middle")
+								.text(function(d){
+									var femaper = d.values["female_live"]/d.values["live"]
+									return format(femaper) + " Female";
+									})
+								.attr("fill", "black")
+
+							var subelement2 = d3.select(this)
+
+							subelement2.append("line")
+							  .attr("x1", function(d){
+								return (3* d.key - 1) * 80;})
+							  .attr("x2", function(d){
+								return 3* d.key * 80;})
+							  .attr("y1", function(d){
+							  	return h - y_scale(d.values["female_decease"]);
+							  })
+							  .attr("y2", function(d){
+							  	return h - y_scale(d.values["female_decease"]);
+							  })
+							  .attr("stroke", "black")
+						 	  .attr("stroke-width", 1)
+						 	  .style("stroke-dasharray","5,5")
+
+						 	subelement2.append("text")
+						 		.attr("x", function(d){
+									return (3* d.key - 0.5) * 80;})
+								.attr("y", function(d){
+						  			return h + 15 - y_scale(d.values["female_decease"]);
+							  		})
+								.attr("text-anchor", "middle")
+								.text(function(d){
+									var femaper = d.values["female_decease"]/d.values["decease"]
+									return format(femaper) + " Female";
+									})
+								.attr("fill", "black")
+						})
+					  }
+
+
+				};
+
+
+			</script>
+		</head>
+
+<body>
+	<script type="text/javascript">
+	d3.csv('titanic_data.csv', draw);
+	</script>
+</body>
+</html>
