@@ -20,7 +20,7 @@
 				"use strict";
 				var margin = 30,
 					w = 900,
-					h = 800;
+					h = 550;
 
 			/* Add Header and Construct svg */
 
@@ -106,6 +106,7 @@
 								return y_scale(d.values['live']);
 							})
 							.attr("fill", "#84b66f")
+							.attr("opacity", 0.8)
 								
 						d3.select(this).append("rect")
 							.attr("x", function(d){
@@ -119,6 +120,7 @@
 								return y_scale(d.values['decease']);
 								})
 							.attr("fill", "#678ca5")
+							.attr("opacity", 0.8)
 						})
 
 				bar.append("g")
@@ -127,7 +129,7 @@
 					   		.attr("x", function(d){
 								return 3 * d.key * 80 - 120;})
 					   		.attr("y", function(d){
-								return (h - 5 - y_scale(d.values['live']));})
+								return (h + 20 - y_scale(d.values['live']));})
 							.text(function(d){
 								return d.values['live'];})
 							.style("text-anchor", "middle")
@@ -138,7 +140,7 @@
 								return 3* d.key * 80 - 40;
 								})
 							.attr("y", function(d){
-								return (h - 5 - y_scale(d.values['decease']));
+								return (h + 20 - y_scale(d.values['decease']));
 								})
 							.text(function(d){return d.values['decease'];})
 							.style("text-anchor", "middle")
@@ -174,24 +176,24 @@
 				legend.append("text")
 					.attr("x", margin + 15)
 					.attr("y", function(d, i){
-						return (i+1)*27;
+						return i*20 + 32;
 						})
 					.text(function(d){
 						return d;
 						})
 
-				svg.append("circle")
-					.attr("cx", margin+5)
-					.attr("cy", 80)
-					.attr("r", 7)
-					.attr("fill", "#876a90")
-					.attr("id", "gender")
+				svg.append("rect")
+					.attr("x", margin)
+					.attr("y", 60)
+					.attr("width", 12)
+					.attr("height", 12)
+					.attr("fill", "#855b89")
 					.on("click", display_gender)
 
 				svg.append("text")
-					.text("Display_Gender_Percentage")
-					.attr("x", margin + 16)
-					.attr("y", 85)
+					.text("Click Me for Female Percentage")
+					.attr("x", margin + 15)
+					.attr("y", 72)
 					.attr("color", "black")
 				
 				function display_gender(){
@@ -223,7 +225,7 @@
 								.attr("text-anchor", "middle")
 								.text(function(d){
 									var femaper = d.values["female_live"]/d.values["live"]
-									return format(femaper) + " Female";
+									return format(femaper);
 									})
 								.attr("fill", "black")
 							var subelement2 = d3.select(this)
@@ -250,7 +252,7 @@
 								.attr("text-anchor", "middle")
 								.text(function(d){
 									var femaper = d.values["female_decease"]/d.values["decease"]
-									return format(femaper) + " Female";
+									return format(femaper);
 									})
 								.attr("fill", "black")
 						})
