@@ -5,28 +5,46 @@
 		<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
     	<script type="text/javascript" src="http://dimplejs.org/dist/dimple.v2.3.0.min.js"></script>
 		<style = type= "text/css">
-			h2{
+			div.button{
+				position: absolute;
 				padding-left: 30px;
-				text-align:left;
-				font-size: 2.0em;
 			}
-
-			text {
-				font-size: 1.0em;
+			div.title{
+				padding-left: 30px;
+				font-size: 2.0em;
+				text-align:left;
+				font-weight: bold;
+			}
+			div.backgroudstory{
+				border-top-width: 10px;
+				width:750px;
+				text-align: left;
+				padding-left: 30px;
 			}
 		</style>
+		<div class = "title">
+			<p>
+			Who Survived Titanic?
+			</p>
+		</div>
+		<div class = "backgroudstory">
+			<p>
+			During the great tragedy of Titanic, only one third of the passengers managed to survive. We know that there are a couple of factors that determine who had the previlidge to get on lifeboat first, but I would say social class and gender plays a large part in it. This bar chart displays how survivors and deceased ones are distributed among different social classes and genders. Now let's take a look!
+			</p>
+		</div>
+		<div class = "button">
+			<button id = "Overview">Overview</button>
+			<button id = "Pclass">Survivorship Percentage by PClass</button>
+			<button id = "Female" onclick="display_gender">Display Female Percentage</button>	
+		</div>
 		<script type="text/javascript">
 			function draw(data){
 				"use strict";
 				var margin = 30,
 					w = 900,
-					h = 550;
+					h = 520;
 
 			/* Add Header and Construct svg */
-
-				d3.select("body")
-				  .append("h2")
-				  .text('Who Survived Titanic?')
 
 				var svg = d3.select('body')
 					.append('svg')
@@ -69,7 +87,7 @@
 					.rollup(counts)
 					.entries(data)
 
-				/* Set scales and add axis */
+				/* Set height scale and add x labels */
 
 				var y_scale = d3.scale.linear()
 					.range([margin, h])
@@ -87,7 +105,7 @@
 					.style("text-anchor", "middle")
 					.text(function(d){return d;})
 
-				/* Create bars, append rectangles and texts */
+				/* Create bars, append rectangles and texts for people counts in different passenger class*/
 
 				var bar = svg.selectAll("g")
 						.data(nested_data)
@@ -133,7 +151,7 @@
 							.text(function(d){
 								return d.values['live'];})
 							.style("text-anchor", "middle")
-							.attr("font-size", "11px")
+							.attr("font-size", "15px")
 							.attr("fill", "black")
 						d3.select(this).append("text")
 							.attr("x", function(d){
@@ -144,11 +162,9 @@
 								})
 							.text(function(d){return d.values['decease'];})
 							.style("text-anchor", "middle")
-							.attr("font-size", "11px")
+							.attr("font-size", "15px")
 							.attr("fill", "black")
 					   	});
-
-	
 
 				/* add legend */
 
@@ -161,7 +177,7 @@
 				legend.append("rect")
 					.attr("x", margin)
 					.attr("y", function(d, i){
-						return (i+1)*20;
+						return (i+2)*20;
 						})
 					.attr("width", 12)
 					.attr("height", 12)
@@ -176,32 +192,21 @@
 				legend.append("text")
 					.attr("x", margin + 15)
 					.attr("y", function(d, i){
-						return i*20 + 32;
+						return i*20 + 52;
 						})
 					.text(function(d){
 						return d;
 						})
-
-				svg.append("rect")
-					.attr("x", margin)
-					.attr("y", 60)
-					.attr("width", 12)
-					.attr("height", 12)
-					.attr("fill", "#855b89")
-					.on("click", display_gender)
-
-				svg.append("text")
-					.text("Click Me for Female Percentage")
-					.attr("x", margin + 15)
-					.attr("y", 72)
-					.attr("color", "black")
-				
+			
+				/* Define function to display female percentage */
+				var format = d3.format(".0%")
 				function display_gender(){
-					var format = d3.format(".0%")
+					svg.selectAll(".percentage").remove()
 					bar.append("g")
 						.each(function(d){
 							var subelement = d3.select(this)
 							subelement.append("line")
+							  .attr("class", "percentage")
 							  .attr("x1", function(d){
 								return (3* d.key - 2) * 80;})
 							  .attr("x2", function(d){
@@ -217,6 +222,7 @@
 						 	  .style("stroke-dasharray","5,5")
 
 						 	subelement.append("text")
+						 		.attr("class", "percentage")
 						 		.attr("x", function(d){
 									return (3* d.key - 1.5) * 80;})
 								.attr("y", function(d){
@@ -228,8 +234,11 @@
 									return format(femaper);
 									})
 								.attr("fill", "black")
+								.style("font-size", "15px")
+
 							var subelement2 = d3.select(this)
 							subelement2.append("line")
+							  .attr("class", "percentage")
 							  .attr("x1", function(d){
 								return (3* d.key - 1) * 80;})
 							  .attr("x2", function(d){
@@ -244,6 +253,7 @@
 						 	  .attr("stroke-width", 1)
 						 	  .style("stroke-dasharray","5,5")
 						 	subelement2.append("text")
+						 		.attr("class", "percentage")
 						 		.attr("x", function(d){
 									return (3* d.key - 0.5) * 80;})
 								.attr("y", function(d){
@@ -255,8 +265,44 @@
 									return format(femaper);
 									})
 								.attr("fill", "black")
+								.style("font-size", "15px")
 						})
 					  }
+				function display_percentage(){
+					svg.selectAll(".percentage").remove()
+					bar.append("g")
+						.each(function(d){
+							d3.select(this).append("text")
+								.attr("class", "percentage")
+								.attr("x", function(d){
+								return 3* d.key * 80 -120;})
+								.attr("y", function(d){
+									return h + 40 - y_scale(d.values['live']);})
+								.text(function(d){
+									var perclass = d.values['live']/(d.values['live']+d.values['decease'])
+									return format(perclass) + " of Pclass" + d.key;
+								})
+								.style("font-size", "13px")
+								.attr("text-anchor", "middle")
+							d3.select(this).append("text")
+								.attr("class", "percentage")
+								.attr("x", function(d){
+								return 3* d.key * 80 - 40;})
+								.attr("y", function(d){
+									return h + 40 - y_scale(d.values['decease']);})
+								.text(function(d){
+									var perclass = d.values['decease']/(d.values['live']+d.values['decease'])
+									return format(perclass) + " of Pclass" + d.key;
+								})
+								.style("font-size", "13px")
+								.attr("text-anchor", "middle")
+						})
+				}
+				d3.select("#Female").on("click", display_gender)
+				d3.select("#Pclass").on("click", display_percentage)
+				d3.select("#Overview").on("click", function(){
+					svg.selectAll(".percentage").remove();
+				})
 				};
 			</script>
 		</head>
